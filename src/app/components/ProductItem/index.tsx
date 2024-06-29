@@ -9,14 +9,17 @@ export interface ProductItemsProps {
   onClick: (id: number) => void;
   onDragStart: (productId: number) => void;
   onDrop: (productId: number) => void;
+  //   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
 }
+
 export default function ProductItem({
   isVisible,
   product,
   onClick,
   onDragStart,
   onDrop,
-}: ProductItemsProps) {
+}: //   onKeyDown,
+ProductItemsProps) {
   const onClickCard = () => {
     onClick(product.id);
   };
@@ -40,6 +43,7 @@ export default function ProductItem({
       onDragStart={onCardDragStart}
       onDrop={onCardDrop}
       onDragOver={onCardDragOver}
+      //   onKeyDown={onKeyDown}
     >
       {!isVisible && <div className={styles.mask}></div>}
 

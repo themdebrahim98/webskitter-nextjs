@@ -9,11 +9,13 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Product } from "./type";
 import { fetchProducts } from "./util";
 import ProductItem from "./components/ProductItem";
+
+const GRID_COLS_LENGTH = 5;
 
 export default function Home() {
   const { user, logout } = useAuth();
@@ -22,10 +24,66 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [visibleProductID, setVisibleProductID] = useState<number | null>(null);
   const [draggedProductId, setDraggedProductId] = useState<number | null>(null);
+  const visibleProductIDRef = useRef<number | null>(null);
 
   if (!user) {
     return <h1>You are not authorized!</h1>;
   }
+
+  const updateVisibleProductId = (productId: number) => {
+    setVisibleProductID(productId);
+    visibleProductIDRef.current = productId;
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e: any) => {
+      let visibleProductIndex = products.findIndex(
+        (product) => product.id === visibleProductIDRef.current
+      );
+
+      if (visibleProductIndex === -1) {
+        visibleProductIndex = 0;
+      }
+
+      let newIndex = visibleProductIndex;
+      const key = e.key;
+
+      if (key === "ArrowLeft") {
+        newIndex = visibleProductIndex - 1;
+        if (newIndex < 0) {
+          newIndex = 0;
+        }
+      } else if (key === "ArrowRight") {
+        newIndex = visibleProductIndex + 1;
+        if (newIndex >= products.length) {
+          newIndex = products.length - 1;
+        }
+      } else if (key === "ArrowUp") {
+        if (visibleProductIndex >= GRID_COLS_LENGTH) {
+          newIndex = visibleProductIndex - GRID_COLS_LENGTH;
+        }
+      } else if (key === "ArrowDown") {
+        const totalRowsCount = Math.ceil(products.length / GRID_COLS_LENGTH);
+        const currentRowIndex = Math.floor(
+          visibleProductIndex / GRID_COLS_LENGTH
+        );
+        const isLastRow = currentRowIndex === totalRowsCount - 1;
+        if (!isLastRow) {
+          newIndex = visibleProductIndex + GRID_COLS_LENGTH;
+        }
+      }
+      console.log(newIndex);
+
+      const newVisibleProductId = products[newIndex].id;
+      updateVisibleProductId(newVisibleProductId);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [products]);
 
   useEffect(() => {
     const getDataFromApi = async () => {
@@ -52,7 +110,7 @@ export default function Home() {
   }
 
   const onClickProductItem = (id: number) => {
-    setVisibleProductID(id);
+    updateVisibleProductId(id);
   };
 
   const handleDragStart = (productID: number) => {
@@ -68,29 +126,37 @@ export default function Home() {
       (product) => product.id === dropOverProductId
     );
 
+    console.log(fromIndex, toIndex);
     // if dragged product and drop product not found, do nothing.
     if (fromIndex === -1 || toIndex === -1) {
       return;
     }
 
     const updatedProducts = [...products];
-    const [draggedItem] = updatedProducts.splice(fromIndex, 1);
-    updatedProducts.splice(toIndex, 0, draggedItem);
+
+    // const [draggedItem] = updatedProducts.splice(fromIndex, 1);
+    // updatedProducts.splice(toIndex, 0, draggedItem);
+    updatedProducts[toIndex] = products[fromIndex];
+    updatedProducts[fromIndex] = products[toIndex];
     setProducts(updatedProducts);
     setDraggedProductId(null);
+    console.log(updatedProducts, products);
   };
+
+  const gridColsSize = 12 / GRID_COLS_LENGTH;
 
   return (
     <Box sx={{ padding: "10px" }}>
       <Grid container spacing={2}>
         {products.map((product) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+          <Grid item xs={gridColsSize} key={product.id}>
             <ProductItem
               product={product}
               isVisible={visibleProductID === product.id}
               onClick={onClickProductItem}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
+              // onKeyDown={handleProductKeyDown}
             />
           </Grid>
         ))}
