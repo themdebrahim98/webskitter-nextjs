@@ -1,5 +1,7 @@
 
-## This is a Next.js project to display the products with firebase.
+## This is a Next.js project to display the products with Firebase.
+
+### App is hosted here: [webskitter-nextjs.vercel.app](https://webskitter-nextjs.vercel.app) 
 
 ## Table of Contents
 
