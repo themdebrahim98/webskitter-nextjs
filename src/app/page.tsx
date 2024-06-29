@@ -26,10 +26,6 @@ export default function Home() {
   const [draggedProductId, setDraggedProductId] = useState<number | null>(null);
   const visibleProductIDRef = useRef<number | null>(null);
 
-  if (!user) {
-    return <h1>You are not authorized!</h1>;
-  }
-
   const updateVisibleProductId = (productId: number) => {
     setVisibleProductID(productId);
     visibleProductIDRef.current = productId;
@@ -100,6 +96,10 @@ export default function Home() {
     };
     getDataFromApi();
   }, []);
+
+  if (!user) {
+    return <h1>You are not authorized!</h1>;
+  }
 
   if (loading) {
     return <CircularProgress />;
